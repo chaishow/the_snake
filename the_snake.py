@@ -18,13 +18,13 @@ RIGHT = Vector2(1, 0)
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
 
 # Цвет яблока
-APPLE_COLOR = (255, 0, 0)
+APPLE_COLOR = (252, 245, 141)
 
 # Цвет змейки
-SNAKE_COLOR = (255, 190, 166)
+SNAKE_COLOR = (35, 185, 182)
 
 # Цвет визуального эффекта "волна"
-WAVE_COLOR = (58, 47, 0)
+WAVE_COLOR = (59, 32, 68)
 
 # Начальный цвет фоновых ячеек
 FLOOR_COLOR = (10, 10, 10)
@@ -49,7 +49,7 @@ class GameObject:
     game object
     """
 
-    def __init__(self, position=None, color=None):
+    def __init__(self, position=Vector2(0, 0), color=None):
         self.position = Vector2(position)
         self.body_color = color
 
@@ -68,7 +68,7 @@ class Snake(GameObject):
 
     def __init__(self, position=Vector2(0, 0), color=SNAKE_COLOR, speed=5):
         super().__init__(position, color)
-        self.head_color = tuple((clr + 10) % 255 for clr in color)
+        self.head_color = (254, 252, 221)
         self.positions = [Vector2(position)]
         self.direction = Vector2(1, 0)
         self.is_eating = False
@@ -161,14 +161,13 @@ class Snake(GameObject):
             self.reset()
 
     def draw(self, grid):
-        grid.draw_on_grid(self.positions[0], self.body_color)
-        for position in self.positions[1:]:
-            grid.draw_on_grid(position, self.body_color)
+        for position in self.positions:
+            grid.draw_on_grid(position, self.body_color, 2)
 
 
 class Apple(GameObject):
 
-    margin = 12
+    margin = 4
 
     def __init__(self, position=Vector2(0, 0), color=APPLE_COLOR):
         super().__init__(position, color)
@@ -181,7 +180,7 @@ class Apple(GameObject):
 
 
 class Wave(GameObject):
-    def __init__(self, position, color, deep=20, margin=2):
+    def __init__(self, position, color, deep=15, margin=1):
         super().__init__(position, color)
         self.positions = [self.position]
         self.period = 30
@@ -209,7 +208,7 @@ class Wave(GameObject):
 class DicscoCell(GameObject):
     """Element of disco floor"""
 
-    def __init__(self, position, color=FLOOR_COLOR, margin=2):
+    def __init__(self, position, color=FLOOR_COLOR, margin=0):
         self.position = Vector2(position)
         self.margin = margin
 
@@ -268,12 +267,25 @@ def get_avalieble_positions(grid, snake):
     return list(avalieble_positions)
 
 
+def handle_keys(handlers):
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            pg.quit()
+            raise SystemExit
+        else:
+            for handler in handlers:
+                handler.handle_keys(event)
+
+
 def main():
 
     pg.init()
 
+    # Initialize of units.
     grid = Grid(screen, SCREEN_WIDTH, SCREEN_HEIGHT, GRID_SIZE)
     frame_counter = FrameCounter(FPS)
+
+    # Initialize of GameObjects
     snake = Snake((0, 0), SNAKE_COLOR)
     current_apple = Apple()
     current_apple.randomize_position(get_avalieble_positions(grid, snake))
@@ -284,25 +296,34 @@ def main():
     for cell in DiscoFlor:
         cell.change_color(get_random_color(max_color_saturation=40))
 
+    # Make list of objects who handle user events
+    # Now it's just snake, but maybe in future there will be more of them
+    handlers = [snake]
+
     while True:
         clock.tick(FPS)
         screen.fill(BOARD_BACKGROUND_COLOR)
 
+        # Update and draw background
         for cell in DiscoFlor:
             cell.update()
             cell.draw(grid)
 
+        # Update and draw waves from apples 
         for wave in waves:
             if wave.is_ended():
                 waves.remove(wave)
             wave.update(grid, frame_counter)
             wave.draw(grid)
 
+        # Update and draw snake
         snake.update(grid, frame_counter)
         snake.draw(grid)
 
+        # Draw apple
         current_apple.draw(grid)
 
+        # Check collision between snake head and apple
         if snake.get_head_position() == current_apple.get_position():
 
             snake.grow()
@@ -314,11 +335,8 @@ def main():
 
             waves.append(Wave(current_apple.get_position(), WAVE_COLOR))
 
-        for event in pg.event.get():
-            snake.handle_keys(event)
-            if event.type == pg.QUIT:
-                pg.quit()
-                raise SystemExit
+        # All events handlers handle events
+        handle_keys(handlers)
 
         pg.display.update()
         frame_counter.update()
@@ -326,22 +344,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-def handle_keys(game_object):
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            pg.quit()
-            raise SystemExit
-        elif event.type == pg.KEYDOWN:
-            if event.key == pg.K_UP and game_object.direction != DOWN:
-                game_object.next_direction = UP
-            elif event.key == pg.K_DOWN and game_object.direction != UP:
-                game_object.next_direction = DOWN
-            elif event.key == pg.K_LEFT and game_object.direction != RIGHT:
-                game_object.next_direction = LEFT
-            elif event.key == pg.K_RIGHT and game_object.direction != LEFT:
-                game_object.next_direction = RIGHT
-
-# Создать функцию handle_keys()
-# Разобраться с инициализацией Vector 2
