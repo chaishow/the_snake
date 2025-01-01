@@ -1,6 +1,6 @@
 import pygame as pg
 
-from .gametypes import Vector2
+from gamebundle.gametypes import Vector2
 
 
 class Grid:
