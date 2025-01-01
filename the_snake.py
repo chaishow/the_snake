@@ -2,7 +2,7 @@ from random import choice, randint
 
 import pygame as pg
 
-from gamebundle import Vector2, Grid, FrameCounter
+from gamebundle import FrameCounter, Grid, Vector2
 
 # System constants.
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
