@@ -102,4 +102,5 @@ class FrameCounter:
         return self.frame_counter
 
     def get_fps(self):
+        """Return current instance FPS"""
         return self.max_frames
