@@ -1,5 +1,7 @@
 from random import choice, randint
+
 import pygame as pg
+
 from gamebundle import Vector2, Grid, FrameCounter
 
 # System constants.
@@ -14,6 +16,7 @@ UP = Vector2(0, -1)
 DOWN = Vector2(0, 1)
 LEFT = Vector2(-1, 0)
 RIGHT = Vector2(1, 0)
+ZERO_VECTOR = Vector2(0, 0)
 
 # Color constants
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
@@ -33,7 +36,7 @@ class GameObject:
     game object.
     """
 
-    def __init__(self, position=Vector2(0, 0), color=None):
+    def __init__(self, position=ZERO_VECTOR, color=None):
         self.position = Vector2(position)
         self.body_color = color
 
@@ -55,7 +58,7 @@ class Snake(GameObject):
 
     MAX_SPEED = FPS - 1
 
-    def __init__(self, position=Vector2(0, 0), color=SNAKE_COLOR, speed=5):
+    def __init__(self, position=ZERO_VECTOR, color=SNAKE_COLOR, speed=5):
         super().__init__(position, color)
         self.head_color = (254, 252, 221)
         self.positions = [Vector2(position)]
@@ -193,7 +196,7 @@ class Snake(GameObject):
 class Apple(GameObject):
     """Class to represent apple in game."""
 
-    def __init__(self, position=Vector2(0, 0), color=APPLE_COLOR):
+    def __init__(self, position=ZERO_VECTOR, color=APPLE_COLOR):
         super().__init__(position, color)
 
     def randomize_position(self, availeble_positions):
@@ -213,7 +216,7 @@ class Wave(GameObject):
     place.
     """
 
-    def __init__(self, position, color, deep=15):
+    def __init__(self, position=ZERO_VECTOR, color=None, deep=15):
         super().__init__(position, color)
         self.positions = [self.position]
         self.period = 30
@@ -247,7 +250,7 @@ class Wave(GameObject):
 class DicscoCell(GameObject):
     """Colorswapping ellement of background."""
 
-    def __init__(self, position, color=FLOOR_COLOR):
+    def __init__(self, position=ZERO_VECTOR, color=FLOOR_COLOR):
         self.position = Vector2(position)
 
         # Use lists to change colors in dynamic
