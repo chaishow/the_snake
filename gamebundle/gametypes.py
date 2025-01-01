@@ -44,9 +44,7 @@ class Vector2:
         by number.
         """
         if not isinstance(other, int):
-            raise TypeError(f'Can only multiply Vector2'
-                            f'by a number, not {type(other)}')
-
+            raise TypeError('Can only multiply Vector2 by a number')
         return Vector2(self.x * other, self.y * other)
 
     def __sub__(self, other):

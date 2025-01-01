@@ -1,5 +1,6 @@
-from .gametypes import Vector2
 import pygame as pg
+
+from .gametypes import Vector2
 
 
 class Grid:
@@ -31,9 +32,8 @@ class Grid:
         may be useful to fill all grid
         with some objects.
         """
-        all_cells_coords = ((Vector2(x, y) for y in range(self.height_in_cells)
-                            for x in range(self.width_in_cells)))
-        return all_cells_coords
+        return ((Vector2(x, y) for y in range(self.height_in_cells)
+                 for x in range(self.width_in_cells)))
 
     def draw_on_grid(self, position, color=(255, 255, 255), margin=0):
         """Renders square by global coordinates
