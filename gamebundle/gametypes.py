@@ -35,9 +35,9 @@ class Vector2:
         """Method to Adding
         of two vectors.
         """
-        new_x = self.x + other.x
-        new_y = self.y + other.y
-        return Vector2(new_x, new_y)
+        if not isinstance(other, Vector2):
+            raise TypeError('Can only add Vector2 with a Vector2')
+        return Vector2(self.x + other.x, self.y + other.y)
 
     def __mul__(self, other):
         """Multiply vector
@@ -51,6 +51,8 @@ class Vector2:
         """Substraction of two
         vetors.
         """
+        if not isinstance(other, Vector2):
+            raise TypeError('Can only substract Vector2 with a Vector 2')
         return Vector2(self.x - other.x, self.y - other.y)
 
     def __neg__(self):
@@ -79,6 +81,18 @@ class Vector2:
         vector.
         """
         return f'{(self.x, self.y)}'
+
+    def __mod__(self, other):
+        """If other is int returns mods of every coordinate,
+        if other is Vector 2 divides the corresponding
+        coordinates into each other.
+        """
+        if isinstance(other, Vector2):
+            return Vector2(self.x % other.x, self.y % other.y)
+        elif isinstance(other, int):
+            return Vector2(self.x % other, self.y % other)
+        else:
+            raise TypeError('Can only % with types Vector2, int')
 
     def __hash__(self):
         """Redifinded to can

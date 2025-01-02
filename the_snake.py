@@ -50,7 +50,7 @@ class GameObject:
 
     def draw(self, grid):
         """Draw GameObject on grid."""
-        pass
+        raise NotImplementedError('Method should be overridden')
 
 
 class Snake(GameObject):
@@ -58,17 +58,19 @@ class Snake(GameObject):
 
     MAX_SPEED = FPS - 1
 
-    def __init__(self, position=ZERO_VECTOR, color=SNAKE_COLOR, speed=5):
+    def __init__(self, position=ZERO_VECTOR, color=SNAKE_COLOR,
+                 start_speed=5, speed_delta=1):
+
         super().__init__(position, color)
+
         self.head_color = (254, 252, 221)
-        self.positions = [Vector2(position)]
         self.direction = Vector2(1, 0)
         self.is_eating = False
-        self.dead = False
-        self.speed = speed
-        self.start_speed = speed
-        self.level = 1
+        self.start_speed = start_speed
+        self.speed_delta = speed_delta
         self.directions_queue = [self.direction]
+
+        self.reset()
 
     def get_head_position(self):
         """Returns snake head position as Vector2."""
@@ -113,7 +115,7 @@ class Snake(GameObject):
         """
         self.level += 1
         if self.level % 3 == 0:
-            self.change_speed(1)
+            self.change_speed(self.speed_delta)
 
     def move(self, grid, frame_counter):
         """Update positions of snake.
@@ -128,11 +130,8 @@ class Snake(GameObject):
             self.update_direction()
 
             # Make new segment of snake.
-            new_head_x = ((self.positions[0].x + self.direction.x) %
-                          grid.get_cell_size().x)
-            new_head_y = ((self.positions[0].y + self.direction.y) %
-                          grid.get_cell_size().y)
-            new_head_position = Vector2(new_head_x, new_head_y)
+            new_head_position = ((self.get_head_position() + self.direction)
+                                 % grid.get_cell_size())
 
             # Check collision between snake positions and new segment.
             if new_head_position in self.positions:
