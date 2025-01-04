@@ -208,6 +208,13 @@ class ColoredSnake(Snake):
                                                 len(self.positions))
         self.shift = 0
 
+    def _reset(self):
+        super()._reset()
+        self.colors = ColorManager.get_gradient(self.start_color,
+                                                self.end_color,
+                                                len(self.positions))
+        self.shift = 0
+
     def _move(self, grid, frame_counter):
         super()._move(grid, frame_counter)
         self.colors = ColorManager.get_gradient(self.start_color,
