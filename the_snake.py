@@ -192,6 +192,10 @@ class Snake(GameObject):
 
 
 class ColoredSnake(Snake):
+    """Class to represent snake with
+    iridescence colors segments.
+    """
+
     def __init__(self, position=ZERO_VECTOR,
                  start_color=SNAKE_COLOR, end_color=SNAKE_COLOR,
                  start_speed=5, speed_delta=1):
@@ -212,6 +216,9 @@ class ColoredSnake(Snake):
         self.shift = (self.shift + 1) % len(self.positions)
 
     def draw(self, grid):
+        """Draw snake with gradient colors
+        thats shifts every snake moving.
+        """
         for i in range(len(self.positions)):
             color = self.colors[((i + self.shift) % len(self.positions))]
             grid.draw_on_grid(self.positions[i],
