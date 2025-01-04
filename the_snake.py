@@ -2,7 +2,7 @@ from random import choice, randint
 
 import pygame as pg
 
-from gamebundle import FrameCounter, Grid, Vector2
+from gamebundle import ColorManager, FrameCounter, Grid, Vector2
 
 # System constants.
 SCREEN_WIDTH, SCREEN_HEIGHT = 640, 480
@@ -22,7 +22,7 @@ ZERO_VECTOR = Vector2(0, 0)
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
 APPLE_COLOR = (252, 245, 141)
 SNAKE_COLOR = (35, 185, 182)
-WAVE_COLOR = (30, 16, 34)
+WAVE_COLOR = (60, 32, 68)
 FLOOR_COLOR = (10, 10, 10)
 
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), 0, 32)
@@ -44,7 +44,7 @@ class GameObject:
         """Returns GameObject position."""
         return self.position
 
-    def set_position(self, position):
+    def _set_position(self, position):
         """Change positon of GameObject."""
         self.position = Vector2(position)
 
@@ -70,7 +70,7 @@ class Snake(GameObject):
         self.speed_delta = speed_delta
         self.directions_queue = [self.direction]
 
-        self.reset()
+        self._reset()
 
     def get_head_position(self):
         """Returns snake head position as Vector2."""
@@ -82,14 +82,14 @@ class Snake(GameObject):
         """
         return set(self.positions)
 
-    def update_direction(self):
+    def __update_direction(self):
         """Method to process direction queue."""
         if len(self.directions_queue) > 0:
             new_direction = self.directions_queue.pop(0)
             if new_direction != -self.direction:
                 self.direction = new_direction
 
-    def add_to_directions_queue(self, direction):
+    def _add_to_directions_queue(self, direction):
         """Method to add new direction in
         directions queue if that dont
         overflow.
@@ -97,7 +97,7 @@ class Snake(GameObject):
         if len(self.directions_queue) < 3:
             self.directions_queue.append(direction)
 
-    def change_speed(self, delta):
+    def __change_speed(self, delta):
         """Method to safety change
         snake speed (cant be <0 and >MAX_SPEED).
         """
@@ -108,16 +108,16 @@ class Snake(GameObject):
         else:
             self.speed = self.MAX_SPEED
 
-    def increace_level(self):
+    def _increace_level(self):
         """Method to increace snale level
         on every 3 levels snake will be
         accelerate.
         """
         self.level += 1
         if self.level % 3 == 0:
-            self.change_speed(self.speed_delta)
+            self.__change_speed(self.speed_delta)
 
-    def move(self, grid, frame_counter):
+    def _move(self, grid, frame_counter):
         """Update positions of snake.
         Create new block in
         """
@@ -127,7 +127,7 @@ class Snake(GameObject):
             (frame_counter.get_fps() // self.speed) == 0
         ):
             # Process new direction from queue.
-            self.update_direction()
+            self.__update_direction()
 
             # Make new segment of snake.
             new_head_position = ((self.get_head_position() + self.direction)
@@ -151,7 +151,7 @@ class Snake(GameObject):
         values to not delete last position in move()
         method and increace snake level.
         """
-        self.increace_level()
+        self._increace_level()
         self.is_eating = True
 
     def die(self):
@@ -160,7 +160,7 @@ class Snake(GameObject):
         """
         self.dead = True
 
-    def reset(self):
+    def _reset(self):
         """Return snake to origin state."""
         self.positions = [Vector2(0, 0)]
         self.dead = False
@@ -171,20 +171,20 @@ class Snake(GameObject):
         """Event handler method."""
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_w:
-                self.add_to_directions_queue(UP)
+                self._add_to_directions_queue(UP)
             if event.key == pg.K_a:
-                self.add_to_directions_queue(LEFT)
+                self._add_to_directions_queue(LEFT)
             if event.key == pg.K_d:
-                self.add_to_directions_queue(RIGHT)
+                self._add_to_directions_queue(RIGHT)
             if event.key == pg.K_s:
-                self.add_to_directions_queue(DOWN)
+                self._add_to_directions_queue(DOWN)
 
     def update(self, grid_map, frame_counter):
         """Method to update snake state."""
         if not self.dead:
-            self.move(grid_map, frame_counter)
+            self._move(grid_map, frame_counter)
         else:
-            self.reset()
+            self._reset()
 
     def draw(self, grid):
         """Draw all of snake positions on grid."""
@@ -195,14 +195,19 @@ class Snake(GameObject):
 class Apple(GameObject):
     """Class to represent apple in game."""
 
-    def __init__(self, position=ZERO_VECTOR, color=APPLE_COLOR):
+    def __init__(self, availeble_positions=None,
+                 position=ZERO_VECTOR, color=APPLE_COLOR):
+
         super().__init__(position, color)
 
-    def randomize_position(self, availeble_positions):
+        if availeble_positions:
+            self._randomize_position(availeble_positions)
+
+    def _randomize_position(self, availeble_positions):
         """Change apple position to random
         from available
         """
-        self.set_position(choice(availeble_positions))
+        self._set_position(choice(availeble_positions))
 
     def draw(self, grid):
         """Draw Apple on grid"""
@@ -215,7 +220,7 @@ class Wave(GameObject):
     place.
     """
 
-    def __init__(self, position=ZERO_VECTOR, color=None, deep=15):
+    def __init__(self, position=ZERO_VECTOR, color=None, deep=7):
         super().__init__(position, color)
         self.positions = [self.position]
         self.period = 30
@@ -242,8 +247,11 @@ class Wave(GameObject):
 
     def draw(self, grid):
         """Draw all of Wave positions on grid."""
+        colors = ColorManager.get_gradient(self.body_color,
+                                           ColorManager.BLACK,
+                                           self.deep)
         for position in self.positions:
-            grid.draw_on_grid(position, self.body_color, 1)
+            grid.draw_on_grid(position, colors[self.level - 1], 1)
 
 
 class DicscoCell(GameObject):
@@ -258,7 +266,7 @@ class DicscoCell(GameObject):
 
         self.is_color_changed = False
 
-    def return_to_own_color(self):
+    def _return_to_own_color(self):
         """Return cell to origin color."""
         delta_r = self.current_color[0] - self.origin_color[0]
         delta_g = self.current_color[1] - self.origin_color[1]
@@ -278,7 +286,7 @@ class DicscoCell(GameObject):
         if count == 3:
             self.is_color_changed = False
 
-    def change_color(self, color):
+    def _change_color(self, color):
         """Safety changing color of cell."""
         for i in range(3):
             if color[i] > 255:
@@ -292,9 +300,9 @@ class DicscoCell(GameObject):
     def update(self):
         """Updating of cell state."""
         if self.is_color_changed:
-            self.return_to_own_color()
+            self._return_to_own_color()
         else:
-            self.change_color(list(get_random_color(max_color_saturation=40)))
+            self._change_color(list(get_random_color(max_color_saturation=40)))
 
     def draw(self, grid):
         """Draw DiscoCell on grid."""
@@ -347,13 +355,13 @@ def main():
     # Initialize of GameObjects
     snake = Snake((0, 0), SNAKE_COLOR)
     current_apple = Apple()
-    current_apple.randomize_position(get_availeble_positions(grid, snake))
+    current_apple._randomize_position(get_availeble_positions(grid, snake))
     waves = []
 
     DiscoFloor = [DicscoCell(position)
                   for position in grid.get_all_cells_coordinates()]
     for cell in DiscoFloor:
-        cell.change_color(get_random_color(max_color_saturation=40))
+        cell._change_color(get_random_color(max_color_saturation=40))
 
     # Make list of objects who handle user events
     # Now it's just snake, but maybe in future there will be more of them
@@ -388,9 +396,7 @@ def main():
             snake.grow()
 
             del current_apple
-            current_apple = Apple()
-            current_apple.randomize_position(get_availeble_positions(grid,
-                                                                     snake))
+            current_apple = Apple(get_availeble_positions(grid, snake))
 
             waves.append(Wave(current_apple.get_position(), WAVE_COLOR))
 
