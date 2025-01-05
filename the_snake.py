@@ -199,14 +199,15 @@ class ColoredSnake(Snake):
     def __init__(self, position=ZERO_VECTOR,
                  start_color=SNAKE_COLOR, end_color=SNAKE_COLOR,
                  start_speed=5, speed_delta=1):
-        super().__init__(position, start_color, start_speed, speed_delta)
 
         self.start_color = start_color
         self.end_color = end_color
+
+        self.shift = 0
+        super().__init__(position, start_color, start_speed, speed_delta)
         self.colors = ColorManager.get_gradient(start_color,
                                                 end_color,
                                                 len(self.positions))
-        self.shift = 0
 
     def _reset(self):
         super()._reset()
